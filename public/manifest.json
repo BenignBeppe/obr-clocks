@@ -2,5 +2,6 @@
     "name": "Clocks",
     "version": "0.1.0",
     "manifest_version": 1,
-    "author": "Sebastian Berlin"
+    "author": "Sebastian Berlin",
+    "background_url": "/"
 }
