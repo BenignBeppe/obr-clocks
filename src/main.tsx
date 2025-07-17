@@ -24,6 +24,24 @@ function createTool() {
     });
 }
 
+function createSizeMode(size: number, label: string) {
+    OBR.tool.createMode({
+        id: `${ID}/mode-${size}`,
+        icons: [
+            {
+                icon: `/mode-${size}.svg`,
+                label: label,
+                filter: {
+                    activeTools: [`${ID}/tool`],
+                },
+            },
+        ],
+    });
+}
+
 OBR.onReady(() => {
     createTool();
+    createSizeMode(4, "Four");
+    createSizeMode(6, "Six");
+    createSizeMode(8, "Eight");
 });
