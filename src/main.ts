@@ -1,4 +1,4 @@
-import OBR, { type Line, type ToolContext, type ToolEvent, buildLine, buildShape } from "@owlbear-rodeo/sdk";
+import OBR, { Command, type Item, type ToolContext, type ToolEvent, buildLine, buildPath, buildShape } from "@owlbear-rodeo/sdk";
 
 import { getPositionOnCircle } from "./geometry";
 
@@ -28,28 +28,62 @@ function createSegmentMode(segments: number, label: string) {
                 }
             }
         ],
-        onToolClick: onToolClick
+        onToolClick: addClock
     });
 }
 
-async function onToolClick(context: ToolContext, event: ToolEvent) {
-    // TODO: Implement nicer.
+async function addClock(context: ToolContext, event: ToolEvent) {
+    // TODO: Implement nicer way of getting the number of segments.
     let segments = Number(context.activeMode?.split("-").at(-1));
     let x = event.pointerPosition.x;
     let y = event.pointerPosition.y;
-    let colour = "#FFF";
+    let lineColour = "hsl(0 0% 75%)";
     let radius = 50;
     let base = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
         .width(radius * 2)
         .height(radius * 2)
-        .strokeColor(colour)
+        .strokeWidth(0)
         .build();
-    // We need to wait here to make sure this doesn't go over the dividers.
-    await OBR.scene.items.addItems([base]);
+    let items: Item[] = [base];
 
-    let dividers: Line[] = [];
+    let points = [];
+    for(let i = 0; i < segments; i ++) {
+        let angle = i ? (360 / segments * i) : 0;
+        let start = getPositionOnCircle(x, y, radius, angle);
+        points.push(start)
+    }
+
+    for (let i = 0; i < segments; i++) {
+        let j;
+        if(i === segments - 1) {
+            j = 0;
+        } else {
+            j = i + 1;
+        }
+        let point = points[i];
+        let between = getPositionOnCircle(x, y, radius, 360 / segments * (i + 0.5));
+        let next = points[j];
+        let segment = buildPath()
+            .zIndex(base.zIndex + 1)
+            // TODO: Figure out how to make this with a round edge. Four
+            // segment clocks look wonky.
+            .commands([
+                [Command.MOVE, x, y],
+                [Command.LINE, point.x, point.y],
+                [Command.LINE, between.x, between.y],
+                [Command.LINE, next.x, next.y],
+                [Command.CLOSE],
+            ])
+            .strokeWidth(0)
+            .fillColor("hsl(100 100% 30%)")
+            .attachedTo(base.id)
+            .disableHit(true)
+            .build();
+        items.push(segment);
+    }
+
     for(let i = 0; i < segments / 2; i ++) {
         let angle = i ? (360 / segments * i) : 0;
         let start = getPositionOnCircle(x, y, radius, angle);
@@ -57,16 +91,28 @@ async function onToolClick(context: ToolContext, event: ToolEvent) {
         let divider = buildLine()
             .startPosition(start)
             .endPosition(end)
-            .strokeColor(colour)
+            .zIndex(base.zIndex + 2)
+            .strokeColor(lineColour)
             .attachedTo(base.id)
             .disableHit(true)
             .build();
-        dividers.push(divider);
+        items.push(divider);
     }
-    // TODO: Figure out if there is a good way to prevent the flickering that
-    // sometimes happens when drawing these. Possibly by creating items hidden
-    // and show them all at once.
-    OBR.scene.items.addItems(dividers);
+
+    let edge = buildShape()
+        .shapeType("CIRCLE")
+        .position({x: x, y: y})
+        .width(radius * 2)
+        .height(radius * 2)
+        .zIndex(base.zIndex + 2)
+        .strokeColor(lineColour)
+        .fillOpacity(0)
+        .attachedTo(base.id)
+        .disableHit(true)
+        .build();
+    items.push(edge);
+
+    OBR.scene.items.addItems(items);
 }
 
 OBR.onReady(() => {
