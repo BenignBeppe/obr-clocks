@@ -39,7 +39,7 @@ async function onToolClick(context: ToolContext, event: ToolEvent) {
     let y = event.pointerPosition.y;
     let colour = "#FFF";
     let radius = 50;
-    let item = buildShape()
+    let base = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
         .width(radius * 2)
@@ -47,7 +47,7 @@ async function onToolClick(context: ToolContext, event: ToolEvent) {
         .strokeColor(colour)
         .build();
     // We need to wait here to make sure this doesn't go over the dividers.
-    await OBR.scene.items.addItems([item]);
+    await OBR.scene.items.addItems([base]);
 
     let dividers: Line[] = [];
     for(let i = 0; i < segments / 2; i ++) {
@@ -58,6 +58,8 @@ async function onToolClick(context: ToolContext, event: ToolEvent) {
             .startPosition(start)
             .endPosition(end)
             .strokeColor(colour)
+            .attachedTo(base.id)
+            .disableHit(true)
             .build();
         dividers.push(divider);
     }
