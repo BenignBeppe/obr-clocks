@@ -1,7 +1,7 @@
 import OBR, { buildLine, buildPath, buildShape, Command, type Item, type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
 
 import { getPositionOnCircle } from "./geometry";
-import { ID } from "./main";
+import { ID } from "./util";
 
 const LINE_COLOUR = "hsl(0 0% 75%)";
 const SEGMENT_COLOR = "hsl(100 100% 30%)";

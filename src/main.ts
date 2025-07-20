@@ -1,8 +1,7 @@
 import OBR, { type Path } from "@owlbear-rodeo/sdk";
 
 import { addClock } from "./items";
-
-export const ID = "eu.sebber.obr-clock";
+import { ID } from "./util";
 
 function createTool() {
     OBR.tool.create({
