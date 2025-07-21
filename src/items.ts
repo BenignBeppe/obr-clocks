@@ -1,11 +1,9 @@
-import OBR, { buildLine, buildPath, buildShape, Command, type Item, type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
+import OBR, { buildPath, buildShape, Command, type Item, type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
 
 import { getPositionOnCircle } from "./geometry";
 import { ID } from "./util";
 
-const LINE_COLOUR = "hsl(0 0% 75%)";
-const SEGMENT_COLOR = "hsl(100 100% 30%)";
-const RADIUS = 50;
+const RADIUS = 80;
 
 export async function addClock(context: ToolContext, event: ToolEvent) {
     // TODO: Implement nicer way of getting the number of segments.
@@ -17,90 +15,52 @@ export async function addClock(context: ToolContext, event: ToolEvent) {
     let base = makeBase(x, y);
     items.push(base);
     items.push(...makeSegments(nSegments, x, y, base));
-    items.push(...makeDividers(nSegments, x, y, base));
-    items.push(makeBorder(x, y, base));
     OBR.scene.items.addItems(items);
 }
 
 function makeBase(x: number, y: number) {
+    let baseColour = "hsl(0 0% 75%)";
     let base = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
-        // Add a bit border to the base to grab on to.
-        .width((RADIUS + 10) * 2)
-        .height((RADIUS + 10 ) * 2)
-        .strokeWidth(0)
+        .width(RADIUS * 2)
+        .height(RADIUS * 2)
+        .strokeWidth(30)
+        .strokeColor(baseColour)
+        .fillColor(baseColour)
         .build();
     return base;
 }
 
-function* makeSegments(nSegments: number, x: number, y: number, base: Item) {
-    let points = [];
-    for(let i = 0; i < nSegments; i ++) {
-        let angle = i ? (360 / nSegments * i) : 0;
-        let start = getPositionOnCircle(x, y, RADIUS, angle);
-        points.push(start)
-    }
-
+function* makeSegments(nSegments: number, baseX: number, baseY: number, base: Item) {
     for (let i = 0; i < nSegments; i++) {
-        let j;
-        if(i === nSegments - 1) {
-            j = 0;
-        } else {
-            j = i + 1;
-        }
-        let point = points[i];
-        let between = getPositionOnCircle(x, y, RADIUS, 360 / nSegments * (i + 0.5));
-        let next = points[j];
+        // This is the point close to the center of the circle.
+        let centerPoint = getPositionOnCircle(baseX, baseY, 10, 360 / nSegments * (i + 0.5));
+        let startAngle = (i ? (360 / nSegments * i) : 0) + 5;
+        let startPoint = getPositionOnCircle(baseX, baseY, RADIUS, startAngle);
+        // The radius offset is just something that looks fine for all number
+        // of segments. The edge isn't circular.
+        let middlePoint = getPositionOnCircle(baseX, baseY, RADIUS + 5, 360 / nSegments * (i + 0.5));
+        let endAngle = (i + 1 ? (360 / nSegments * (i + 1)) : 0) - 5;
+        let endPoint = getPositionOnCircle(baseX, baseY, RADIUS, endAngle);
         let segment = buildPath()
             .name(`${ID}/segment`)
             .zIndex(base.zIndex + 1)
             // TODO: Figure out how to make this with a round edge. Four
             // segment clocks look wonky.
             .commands([
-                [Command.MOVE, x, y],
-                [Command.LINE, point.x, point.y],
-                [Command.LINE, between.x, between.y],
-                [Command.LINE, next.x, next.y],
+                [Command.MOVE, centerPoint.x, centerPoint.y],
+                [Command.LINE, startPoint.x, startPoint.y],
+                [Command.QUAD, middlePoint.x, middlePoint.y, endPoint.x, endPoint.y],
                 [Command.CLOSE],
             ])
-            .strokeWidth(0)
-            .fillColor(SEGMENT_COLOR)
+            .strokeWidth(2)
+            .strokeColor("hsl(0 0% 20%)")
+            .fillColor("hsl(100 100% 30%)")
+            .fillOpacity(0.01)
             .attachedTo(base.id)
             .locked(true)
             .build();
         yield segment;
     }
-}
-
-function* makeDividers(nSegments: number, x: number, y: number, base: Item) {
-        for(let i = 0; i < nSegments / 2; i ++) {
-        let angle = i ? (360 / nSegments * i) : 0;
-        let start = getPositionOnCircle(x, y, RADIUS, angle);
-        let end = getPositionOnCircle(x, y, RADIUS, angle + 180);
-        let divider = buildLine()
-            .startPosition(start)
-            .endPosition(end)
-            .zIndex(base.zIndex + 2)
-            .strokeColor(LINE_COLOUR)
-            .attachedTo(base.id)
-            .disableHit(true)
-            .build();
-        yield divider;
-    }
-}
-
-function makeBorder(x: number, y: number, base: Item) {
-    let border = buildShape()
-        .shapeType("CIRCLE")
-        .position({x: x, y: y})
-        .width(RADIUS * 2)
-        .height(RADIUS * 2)
-        .zIndex(base.zIndex + 2)
-        .strokeColor(LINE_COLOUR)
-        .fillOpacity(0)
-        .attachedTo(base.id)
-        .disableHit(true)
-        .build();
-    return border;
 }
