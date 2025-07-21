@@ -1,20 +1,17 @@
-import OBR, { buildPath, buildShape, Command, type Item, type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
+import OBR, { buildPath, buildShape, buildText, Command, type Item, type Shape } from "@owlbear-rodeo/sdk";
 
 import { getPositionOnCircle } from "./geometry";
 import { ID } from "./util";
 
 const RADIUS = 80;
+const BORDER_WIDTH = 30;
 
-export async function addClock(context: ToolContext, event: ToolEvent) {
-    // TODO: Implement nicer way of getting the number of segments.
-    let nSegments = Number(context.activeMode?.split("-").at(-1));
-    let x = event.pointerPosition.x;
-    let y = event.pointerPosition.y;
-
+export async function addClock(x: number, y:number, nSegments: number, labelText: string) {
     let items: Item[] = [];
     let base = makeBase(x, y);
     items.push(base);
-    items.push(...makeSegments(nSegments, x, y, base));
+    items.push(...makeSegments(base, nSegments));
+    items.push(makeLabel(base, labelText));
     OBR.scene.items.addItems(items);
 }
 
@@ -25,14 +22,16 @@ function makeBase(x: number, y: number) {
         .position({x: x, y: y})
         .width(RADIUS * 2)
         .height(RADIUS * 2)
-        .strokeWidth(30)
+        .strokeWidth(BORDER_WIDTH)
         .strokeColor(baseColour)
         .fillColor(baseColour)
         .build();
     return base;
 }
 
-function* makeSegments(nSegments: number, baseX: number, baseY: number, base: Item) {
+function* makeSegments(base: Item, nSegments: number) {
+    let baseX = base.position.x;
+    let baseY = base.position.y;
     for (let i = 0; i < nSegments; i++) {
         // This is the point close to the center of the circle.
         let centerPoint = getPositionOnCircle(baseX, baseY, 10, 360 / nSegments * (i + 0.5));
@@ -63,4 +62,27 @@ function* makeSegments(nSegments: number, baseX: number, baseY: number, base: It
             .build();
         yield segment;
     }
+}
+
+function makeLabel(base: Shape, text: string) {
+    let position = {
+        x: base.position.x - RADIUS,
+        y: base.position.y + RADIUS + BORDER_WIDTH / 2
+    }
+    let label = buildText()
+        .position(position)
+        .width(base.width)
+        .textType("PLAIN")
+        .textAlign("CENTER")
+        .plainText(text)
+        .fontSize(24)
+        .attachedTo(base.id)
+        .build();
+
+    // Attach the other way too. This makes it possible to select and move the
+    // clock by clicking the label.
+    base.attachedTo = label.id;
+    // Still allow deleting the text without losing the whole clock.
+    base.disableAttachmentBehavior = ["DELETE"];
+    return label;
 }

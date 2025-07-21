@@ -1,4 +1,4 @@
-import OBR, { type Path } from "@owlbear-rodeo/sdk";
+import OBR, { type Path, type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
 
 import { addClock } from "./items";
 import { ID } from "./util";
@@ -27,7 +27,11 @@ function createSegmentMode(segments: number, label: string) {
                 }
             }
         ],
-        onToolClick: addClock
+        onToolClick: (_context: ToolContext, event: ToolEvent) => {
+            let x = event.pointerPosition.x;
+            let y = event.pointerPosition.y;
+            addClock(x, y, segments, label)
+        }
     });
 }
 
