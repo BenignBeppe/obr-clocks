@@ -2,21 +2,33 @@ import OBR, { buildPath, buildShape, buildText, Command, type Item, type Shape }
 
 import { getPositionOnCircle } from "./geometry";
 import { ID } from "./util";
+import { hexToHsl } from "./colour";
 
 const RADIUS = 80;
 const BORDER_WIDTH = 30;
 
 export async function addClock(x: number, y:number, nSegments: number, labelText: string) {
+    let colour = await OBR.player.getColor();
     let items: Item[] = [];
-    let base = makeBase(x, y);
+    let base = await makeBase(x, y, colour);
     items.push(base);
-    items.push(...makeSegments(base, nSegments));
-    items.push(makeLabel(base, labelText));
+    items.push(...makeSegments(base, nSegments, colour));
+    items.push(makeLabel(base, labelText, colour));
     OBR.scene.items.addItems(items);
 }
 
-function makeBase(x: number, y: number) {
-    let baseColour = "hsl(0 0% 75%)";
+async function makeBase(x: number, y: number, colour: string) {
+    let hslColour = hexToHsl(colour);
+    let baseColour;
+    // Set background colour to be lighter when the foreground colour is dark
+    // and vice versa.
+    console.log(hslColour.l);
+    if(hslColour.l > 50) {
+        baseColour = "hsl(0 0% 25%)";
+    } else {
+        baseColour = "hsl(0 0% 75%)";
+    }
+
     let base = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
@@ -29,7 +41,7 @@ function makeBase(x: number, y: number) {
     return base;
 }
 
-function* makeSegments(base: Item, nSegments: number) {
+function* makeSegments(base: Item, nSegments: number, colour: string) {
     let baseX = base.position.x;
     let baseY = base.position.y;
     for (let i = 0; i < nSegments; i++) {
@@ -54,8 +66,8 @@ function* makeSegments(base: Item, nSegments: number) {
                 [Command.CLOSE],
             ])
             .strokeWidth(2)
-            .strokeColor("hsl(0 0% 20%)")
-            .fillColor("hsl(100 100% 30%)")
+            .strokeColor("hsl(0 0% 50%)")
+            .fillColor(colour)
             .fillOpacity(0.01)
             .attachedTo(base.id)
             .locked(true)
@@ -64,7 +76,7 @@ function* makeSegments(base: Item, nSegments: number) {
     }
 }
 
-function makeLabel(base: Shape, text: string) {
+function makeLabel(base: Shape, text: string, colour: string) {
     let position = {
         x: base.position.x - RADIUS,
         y: base.position.y + RADIUS + BORDER_WIDTH / 2
@@ -76,6 +88,7 @@ function makeLabel(base: Shape, text: string) {
         .textAlign("CENTER")
         .plainText(text)
         .fontSize(24)
+        .fillColor(colour)
         .attachedTo(base.id)
         .build();
 
