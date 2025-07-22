@@ -22,7 +22,6 @@ async function makeBase(x: number, y: number, colour: string) {
     let baseColour;
     // Set background colour to be lighter when the foreground colour is dark
     // and vice versa.
-    console.log(hslColour.l);
     if(hslColour.l > 50) {
         baseColour = "hsl(0 0% 25%)";
     } else {
