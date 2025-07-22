@@ -1,4 +1,17 @@
-export function hexToHsl(hex: string) {
+export function getContrastGrey(hexColour: string) {
+    let hslColour = hexToHsl(hexColour);
+    let contrastColour;
+    // Set contrast colour to be lighter when the colour is dark and vice versa.
+    if(hslColour.l > 50) {
+        contrastColour = "hsl(0 0% 40%)";
+    } else {
+        contrastColour = "hsl(0 0% 60%)";
+    }
+
+    return contrastColour;
+}
+
+function hexToHsl(hex: string) {
     // Based on https://css-tricks.com/converting-color-spaces-in-javascript/#aa-hex-to-hsl
 
     // Convert hex to RGB first
