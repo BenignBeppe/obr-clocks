@@ -1,19 +1,21 @@
-import OBR, { buildPath, buildShape, buildText, Command, type Item, type Shape } from "@owlbear-rodeo/sdk";
+import OBR, { buildPath, buildShape, buildText, Command, type Item, type Path, type Player, type Shape } from "@owlbear-rodeo/sdk";
 
 import { getPositionOnCircle } from "./geometry";
 import { ID } from "./util";
-import { getContrastGrey } from "./colour";
 
 const RADIUS = 80;
+const OPACITY_ON = 0.5;
+// Looks like the opacity just need to be more than zero to
+// keep the item selectable.
+const OPACITY_OFF = 0.01;
 
 export async function addClock(x: number, y:number, nSegments: number, labelText: string) {
     let colour = await OBR.player.getColor();
-    let contrastColour = getContrastGrey(colour);
 
     let items: Item[] = [];
-    let pin = await makePin(x, y, colour, contrastColour);
+    let pin = await makePin(x, y, colour);
     items.push(pin);
-    items.push(...makeSegments(pin, nSegments, colour, contrastColour));
+    items.push(...makeSegments(pin, nSegments, colour));
     items.push(makeLabel(pin, labelText, colour));
     // Attach each item to the previous one. This means you can move any item and the rest will follow.
     for(let i = 0; i < items.length; i++) {
@@ -28,20 +30,19 @@ export async function addClock(x: number, y:number, nSegments: number, labelText
     OBR.scene.items.addItems(items);
 }
 
-async function makePin(x: number, y: number, colour: string, contrastColour: string) {
+async function makePin(x: number, y: number, colour: string) {
     let pin = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
-        .width(RADIUS / 3)
-        .height(RADIUS / 3)
-        .strokeWidth(5)
-        .strokeColor(contrastColour)
+        .width(RADIUS / 2.5)
+        .height(RADIUS / 2.5)
+        .strokeWidth(0)
         .fillColor(colour)
         .build();
     return pin;
 }
 
-function* makeSegments(pin: Item, nSegments: number, colour: string, contrastColour: string) {
+function* makeSegments(pin: Item, nSegments: number, colour: string) {
     let pinX = pin.position.x;
     let pinY = pin.position.y;
     for (let i = 0; i < nSegments; i++) {
@@ -64,9 +65,9 @@ function* makeSegments(pin: Item, nSegments: number, colour: string, contrastCol
                 [Command.CLOSE],
             ])
             .strokeWidth(5)
-            .strokeColor(contrastColour)
+            .strokeColor(colour)
             .fillColor(colour)
-            .fillOpacity(0.01)
+            .fillOpacity(OPACITY_OFF)
             .build();
         yield segment;
     }
@@ -88,4 +89,35 @@ function makeLabel(pin: Shape, text: string, colour: string) {
         .build();
 
         return label;
+}
+
+export async function handleSelect(player: Player) {
+    let selectedId = player.selection;
+    if (selectedId === undefined || selectedId.length === 0) {
+        // Nothing selected.
+        return;
+    }
+
+    if (selectedId.length > 1) {
+        // Multiple items selected.
+        return;
+    }
+
+    let selectedItem = (await OBR.scene.items.getItems(selectedId))[0];
+    if (selectedItem.name !== `${ID}/segment`) {
+        // Selected item is not a segment.
+        return;
+    }
+
+    // TODO: Is there a way to avoid the selection UI popping up for a
+    // split second before it's deselected?
+    OBR.player.deselect();
+    let segment = selectedItem as Path;
+    OBR.scene.items.updateItems([segment], (items) => {
+        if (items[0].style.fillOpacity === OPACITY_ON) {
+            items[0].style.fillOpacity = OPACITY_OFF;
+        } else {
+            items[0].style.fillOpacity = OPACITY_ON;
+        }
+    });
 }
