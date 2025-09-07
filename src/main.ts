@@ -9,7 +9,7 @@ function createTool() {
         id: `${ID}/tool`,
         icons: [
             {
-                icon: "/tool.svg",
+                icon: "/obr-clocks/tool.svg",
                 label: "Clocks",
             }
         ]
@@ -21,7 +21,7 @@ function createSegmentMode(segments: number, label: string) {
         id: `${ID}/mode-${segments}`,
         icons: [
             {
-                icon: `/mode-${segments}.svg`,
+                icon: `/obr-clocks/mode-${segments}.svg`,
                 label: label,
                 filter: {
                     activeTools: [`${ID}/tool`],
