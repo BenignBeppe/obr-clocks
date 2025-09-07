@@ -1,7 +1,7 @@
 {
     "name": "Clocks",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "manifest_version": 1,
     "author": "Sebastian Berlin",
-    "background_url": "/"
+    "background_url": "/obr-clocks/"
 }

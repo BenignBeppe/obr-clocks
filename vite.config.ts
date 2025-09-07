@@ -6,5 +6,6 @@ export default defineConfig({
         cors: {
             origin: "https://www.owlbear.rodeo",
         }
-    }
+    },
+    base: "/obr-clocks/"
 })
