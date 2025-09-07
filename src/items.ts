@@ -5,7 +5,7 @@ import { ID } from "./util";
 
 const RADIUS = 80;
 const OPACITY_ON = 0.5;
-// Looks like the opacity just need to be more than zero to
+// Looks like the opacity just needs to be more than zero to
 // keep the item selectable.
 const OPACITY_OFF = 0.01;
 
