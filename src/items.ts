@@ -34,6 +34,7 @@ async function makePin(x: number, y: number, colour: string) {
     let pin = buildShape()
         .shapeType("CIRCLE")
         .position({x: x, y: y})
+        .layer("NOTE")
         .width(RADIUS / 2.5)
         .height(RADIUS / 2.5)
         .strokeWidth(0)
@@ -57,6 +58,7 @@ function* makeSegments(pin: Item, nSegments: number, colour: string) {
         let middlePoint = getPositionOnCircle(pinX, pinY, middleRadius, startAngle + (endAngle - startAngle) / 2);
         let segment = buildPath()
             .name(`${ID}/segment`)
+            .layer("NOTE")
             .zIndex(pin.zIndex - 1)
             .commands([
                 [Command.MOVE, pinX, pinY],
@@ -81,6 +83,7 @@ function makeLabel(pin: Shape, text: string, colour: string) {
     let label = buildText()
         .position(position)
         .width(RADIUS * 2)
+        .layer("NOTE")
         .textType("PLAIN")
         .textAlign("CENTER")
         .plainText(text)
