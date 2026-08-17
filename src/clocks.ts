@@ -48,9 +48,9 @@ function* makeSegments(pin: Item, nSegments: number, colour: string) {
     let pinX = pin.position.x;
     let pinY = pin.position.y;
     for (let i = 0; i < nSegments; i++) {
-        let startAngle = (i ? (360 / nSegments * i) : 0);
+        let startAngle = (i ? (360 / nSegments * i) : 0) + 270;
         let startPoint = getPositionOnCircle(pinX, pinY, RADIUS, startAngle);
-        let endAngle = (i + 1 ? (360 / nSegments * (i + 1)) : 0);
+        let endAngle = (i + 1 ? (360 / nSegments * (i + 1)) : 0) + 270;
         let endPoint = getPositionOnCircle(pinX, pinY, RADIUS, endAngle);
         // This is based on
         // https://ctan.math.illinois.edu/macros/latex/contrib/lapdf/rcircle.pdf.
