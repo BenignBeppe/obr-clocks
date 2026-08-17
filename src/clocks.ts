@@ -131,7 +131,6 @@ export async function handleSelect(player: Player) {
     }
 
     let filledSegments = getFilledSegments(segments);
-    console.log(segments, filledSegments);
     if(filledSegments.length === segments.length) {
         sendMessage(CHIME);
     } else if(filledSegments.length % 2) {
@@ -142,7 +141,6 @@ export async function handleSelect(player: Player) {
 }
 
 async function getSegments(segment: Item): Promise<Item[]> {
-    console.log(segment.metadata[ID + "/clock"]);
     let segments = await OBR.scene.items.getItems(
         (i) => {
             if(!i.metadata[ID + "/clock"]) {
