@@ -1,8 +1,8 @@
 import OBR, { type ToolContext, type ToolEvent } from "@owlbear-rodeo/sdk";
 
-import { addClock } from "./items";
+import { addClock } from "./clocks";
 import { ID } from "./util";
-import { handleSelect } from "./items";
+import { handleSelect } from "./clocks";
 import { handleMessage } from "./messages";
 import { toggleAudio } from "./audio";
 
