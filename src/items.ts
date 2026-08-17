@@ -2,6 +2,7 @@ import OBR, { buildPath, buildShape, buildText, Command, type Item, type Path, t
 
 import { getPositionOnCircle } from "./geometry";
 import { ID } from "./util";
+import { sendMessage, TICK, TOCK, CHIME } from "./messages";
 
 const RADIUS = 80;
 const OPACITY_ON = 0.5;
@@ -59,6 +60,7 @@ function* makeSegments(pin: Item, nSegments: number, colour: string) {
         let segment = buildPath()
             .name(`${ID}/segment`)
             .layer("NOTE")
+            .metadata({[ID + "/clock"]: pin.id})
             .zIndex(pin.zIndex - 1)
             .commands([
                 [Command.MOVE, pinX, pinY],
@@ -116,11 +118,50 @@ export async function handleSelect(player: Player) {
     // split second before it's deselected?
     OBR.player.deselect();
     let segment = selectedItem as Path;
-    OBR.scene.items.updateItems([segment], (items) => {
+    await OBR.scene.items.updateItems([segment], (items) => {
         if (items[0].style.fillOpacity === OPACITY_ON) {
             items[0].style.fillOpacity = OPACITY_OFF;
         } else {
             items[0].style.fillOpacity = OPACITY_ON;
         }
     });
+    let segments = await getSegments(segment);
+    if(!segments) {
+        return;
+    }
+
+    let filledSegments = getFilledSegments(segments);
+    console.log(segments, filledSegments);
+    if(filledSegments.length === segments.length) {
+        sendMessage(CHIME);
+    } else if(filledSegments.length % 2) {
+        sendMessage(TICK);
+    } else {
+        sendMessage(TOCK);
+    }
+}
+
+async function getSegments(segment: Item): Promise<Item[]> {
+    console.log(segment.metadata[ID + "/clock"]);
+    let segments = await OBR.scene.items.getItems(
+        (i) => {
+            if(!i.metadata[ID + "/clock"]) {
+                return false;
+            }
+
+            if(i.metadata[ID + "/clock"] === segment.metadata[ID + "/clock"]) {
+                return true;
+            }
+
+            return false;
+        }
+    );
+    return segments;
+}
+
+function getFilledSegments(segments: Item[]): Item[] {
+    let filledSegments = segments.filter(
+        (s) => (s as Path).style.fillOpacity === OPACITY_ON
+    );
+    return filledSegments;
 }
