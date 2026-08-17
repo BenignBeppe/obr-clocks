@@ -58,7 +58,7 @@ function* makeSegments(pin: Item, nSegments: number, colour: string) {
         let middleRadius = RADIUS / Math.cos(middleAngle);
         let middlePoint = getPositionOnCircle(pinX, pinY, middleRadius, startAngle + (endAngle - startAngle) / 2);
         let segment = buildPath()
-            .name(`${ID}/segment`)
+            .name(ID + "/segment")
             .layer("NOTE")
             .metadata({[ID + "/clock"]: pin.id})
             .zIndex(pin.zIndex - 1)
@@ -109,7 +109,7 @@ export async function handleSelect(player: Player) {
     }
 
     let selectedItem = (await OBR.scene.items.getItems(selectedId))[0];
-    if (selectedItem.name !== `${ID}/segment`) {
+    if (selectedItem.name !== ID + "/segment") {
         // Selected item is not a segment.
         return;
     }

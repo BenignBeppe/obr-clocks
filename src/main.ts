@@ -8,12 +8,12 @@ import { toggleAudio } from "./audio";
 
 function createTool() {
     OBR.tool.create({
-        id: `${ID}/tool`,
+        id: ID + "/tool",
         defaultMetadata: { playSounds: false },
         icons: [
             {
                 icon: "/obr-clocks/tool.svg",
-                label: "Clocks",
+                label: "Clocks"
             }
         ]
     });
@@ -27,7 +27,7 @@ function createSegmentMode(segments: number, label: string) {
                 icon: `/obr-clocks/mode-${segments}.svg`,
                 label: label,
                 filter: {
-                    activeTools: [`${ID}/tool`],
+                    activeTools: [ID + "/tool"]
                 }
             }
         ],
@@ -54,14 +54,14 @@ function createAction() {
                             value: true
                         }
                     ]
-                },
+                }
             },
             {
                 icon: "/obr-clocks/sound-off.svg",
                 label: "Turn sound on",
                 filter: {
                     activeTools: [ ID + "/tool" ]
-                },
+                }
             }
         ],
         onClick: toggleAudio
